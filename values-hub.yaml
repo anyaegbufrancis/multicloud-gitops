@@ -3,23 +3,41 @@ clusterGroup:
   isHubCluster: true
 
   namespaces:
-    - open-cluster-management
-    - vault
-    - golang-external-secrets
-    - config-demo
-    - hello-world
+    - open-cluster-management:
+        annotations:
+          openshift.io/display-name: "Advanced Cluster Management for Kubernetes"
+        labels:
+          openshift.io/cluster-monitoring: "true"
+        operatorGroup: true
+        targetNamespaces:
+          - open-cluster-management
+    - stackrox:
+        operatorGroup: false
+    - ekho-external-secrets:
+        operatorGroup: true
+    - rhacs-operator:
+        operatorGroup: true
+        annotations:
+          openshift.io/display-name: Red Hat Advanced Cluster Security Operator
+    - policies:
+        operatorGroup: false
 
   subscriptions:
     acm:
       name: advanced-cluster-management
       namespace: open-cluster-management
-      channel: release-2.8
+      channel: release-2.8-cluster-scoped
       #csv: advanced-cluster-management.v2.6.1
+    
+    ekho-external-secrets:
+      name: external-secrets-operator
+      channel: stable
+      source: community-operators
+      sourceNamespace: openshift-marketplace
 
+    
   projects:
     - hub
-    - config-demo
-    - hello-world
 
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
@@ -55,17 +73,19 @@ clusterGroup:
         jsonPointers:
           - /spec/loggingCA
 
-    vault:
-      name: vault
-      namespace: vault
+    openshift-plus:
+      name: openshift-plus
+      namespace: rhacs-operator
       project: hub
-      path: common/hashicorp-vault
+      kustomize: true
+      path: charts/all/openshift-plus
 
-    golang-external-secrets:
-      name: golang-external-secrets
-      namespace: golang-external-secrets
+    ekho-external-secrets:
+      name: exho-external-secrets
+      namespace: ekho-external-secrets
       project: hub
-      path: common/golang-external-secrets
+      kustomize: true
+      path: charts/all/ekho-external-secrets/overlays/default
 
     config-demo:
       name: config-demo
@@ -86,6 +106,7 @@ clusterGroup:
     # imagePullPolicy is set to always: imperative.imagePullPolicy
     # For additional overrides that apply to the jobs, please refer to
     # https://hybrid-cloud-patterns.io/imperative-actions/#additional-job-customizations
+    unseal: false
     jobs:
     - name: hello-world
       # ansible playbook to be run
