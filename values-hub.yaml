@@ -106,7 +106,7 @@ clusterGroup:
     # imagePullPolicy is set to always: imperative.imagePullPolicy
     # For additional overrides that apply to the jobs, please refer to
     # https://hybrid-cloud-patterns.io/imperative-actions/#additional-job-customizations
-    unseal: false
+    # unseal: false
     jobs:
     - name: hello-world
       # ansible playbook to be run
